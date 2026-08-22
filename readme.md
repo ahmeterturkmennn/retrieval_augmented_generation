@@ -1,4 +1,4 @@
-# 📚 RAG over a Computer Vision Book
+# 📚 RAG 
 
 A local Retrieval-Augmented Generation (RAG) pipeline that lets you ask
 questions about a PDF (e.g. a computer vision textbook) and get grounded,

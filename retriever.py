@@ -25,15 +25,25 @@ user query
 """
 Why you need reranking at all, if you already have hybrid search
 
-Your dense + BM25 + RRF pipeline is a bi-encoder approach: the query gets embedded separately from each chunk, and you compare vectors afterward. This is fast (you can precompute all chunk embeddings once), but it's also a bit "lossy" — the query and chunk never actually get looked at together by the model.
+Your dense + BM25 + RRF pipeline is a bi-encoder approach: the query gets embedded
+separately from each chunk, and you compare vectors afterward. This is fast (you can 
+precompute all chunk embeddings once), but it's also a bit "lossy" — the query and c
+hunk never actually get looked at together by the model.
 
-A cross-encoder reranker does the opposite: it takes the query and one chunk together, concatenated, and passes both through the model at once:
+A cross-encoder reranker does the opposite: it takes the query and one chunk together,
+concatenated, and passes both through the model at once:
 
 [CLS] how does ransac work [SEP] RANSAC is used to fit lines to noisy data... [SEP]
 
-The model then directly outputs a single relevance score for that pair. Because the model can "see" the query and chunk simultaneously (with full cross-attention between every word of both), it catches subtler relevance signals that separate embeddings miss — e.g., it notices that a chunk merely mentions RANSAC in passing is less relevant than a chunk that explains RANSAC.
+The model then directly outputs a single relevance score for that pair. Because the model can
+"see" the query and chunk simultaneously (with full cross-attention between every word of both), 
+it catches subtler relevance signals that separate embeddings miss — e.g., it notices that a chunk 
+merely mentions RANSAC in passing is less relevant than a chunk that explains RANSAC.
 
-The catch: this is much slower, because you can't precompute anything — you must run the model fresh for every (query, chunk) pair, at query time. That's exactly why you don't use it for the first-pass search over your whole corpus (imagine scoring a cross-encoder pair for 10,000 chunks — too slow), but only on the small shortlist (your top 10–20 fused results) to re-sort them more accurately before picking the final top-k.
+The catch: this is much slower, because you can't precompute anything — you must run the model fresh
+for every (query, chunk) pair, at query time. That's exactly why you don't use it for the first-pass
+search over your whole corpus (imagine scoring a cross-encoder pair for 10,000 chunks — too slow), 
+but only on the small shortlist (your top 10–20 fused results) to re-sort them more accurately before picking the final top-k.
 
 Where it fits in your pipeline
 user query
